@@ -10,8 +10,6 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = 'user'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
     id = Column(Integer, primary_key=True)
     username = Column(String(100))
     firstname = Column(String(250), nullable=False)
@@ -20,17 +18,57 @@ class User(Base):
 
 class Follower(Base):
     __tablename__ = 'follower'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
     id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
+    user_to_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+    user_from_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+    user = relationship("User")
 
     def to_dict(self):
-        return {}
+        return {
+        "user_to_id":self.user_to_id,
+        "user_from_id":self.user_from_id
+        }
+
+class Post(Base):
+    __tablename__ = 'post'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+    user = relationship("User")
+
+    def to_dict(self):
+        return {
+        "user_id":self.user_to_id,
+        }
+
+class Comment(Base):
+    __tablename__ = 'comment'
+    id = Column(Integer, primary_key=True)
+    comment_text = Column(String(256), nullable=False)
+    author_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
+    user = relationship("User")
+    post_id = Column(Integer, ForeignKey('post.id'), primary_key=True)
+    post = relationship("Post")
+
+    def to_dict(self):
+        return {
+        "id":self.id,
+        "comment_text":self.comment_text,
+        "author_id":self.author_id,
+        "post_id":self.post_id
+        }
+        
+class TypeEnum(enum.Enum):
+    image=1
+    icon=2
+    text=3
+
+class Media(Base):
+    __tablename__ = 'media'
+    id = Column(Integer, primary_key=True)
+    type= Column(Enum(TypeEnum))
+    url= Column(String(50))
+    post_id = Column(Integer, ForeignKey('post.id'), primary_key=True)
+    post = relationship("Post")
 
 ## Draw from SQLAlchemy base
 try:
